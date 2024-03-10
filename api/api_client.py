@@ -3,23 +3,56 @@ from bs4 import BeautifulSoup
 import json 
 
 class APIClient:
-    def __init__(self, base_url, headers=None):
+    def __init__(self, base_url, headers=None, params=None):
         self.base_url = base_url
         self.headers = headers
+        self.params = params
 
-    def get_data(self, params=None):
+    def get_data(self, filename='data.json'):
+        json_data = self.retrieve_all_students()
+
+        print(json_data)
+        json_data = json.dumps(json_data, ensure_ascii=False)
+
+        with open(filename, 'w') as f:
+            f.write(json_data)
+            print("Data guardada en: ", filename)
+        
+    def retrieve_all_students(self,):
+        total_json_data = []
         try:
-            response = requests.get(self.base_url, headers=self.headers, params=params)
+            total_json_data = []
+            page_number = 1
+            while True:
+                self.params['pag'] = page_number
+                json_tmp = self.find_student()
+                if len(json_tmp) == 0:
+                    break
+                total_json_data.extend(json_tmp)
+                page_number += 1
+            
+        except requests.exceptions.RequestException as e:
+            print("Request failed:", e)
+            raise
+        finally:
+            return total_json_data
+        
+    def find_student(self, ):
+        # New Algorythm
+        extracted_data_per_page = []  
+        student_td_groups = []
+        current_student_tds = []
+        
+        try:
+            response = requests.get(self.base_url, headers=self.headers, params=self.params)
             response.raise_for_status()
-
+            
             # Parse the HTML response using BeautifulSoup
             soup = BeautifulSoup(response.content, 'html.parser')
             td_elements = soup.find_all('td', class_='valor')
-
-            # New Algorythm
-            extracted_data = []  
-            student_td_groups = []
-            current_student_tds = [] 
+            
+            if len(td_elements) == 0:
+                return extracted_data_per_page
 
             # Stundent array of td_elements creation
             for td_element in td_elements:
@@ -49,7 +82,7 @@ class APIClient:
                         }
                     }
                     # Append the student data to the list
-                    extracted_data.append(student_data)
+                    extracted_data_per_page.append(student_data)
                 else:
                     name = group[0].text.strip()
                     email = group[1].text.strip().split(' ')[0]
@@ -65,11 +98,10 @@ class APIClient:
                         careers.append(career_data)
                     # Construct the student data and append to extracted_data
                     student_data = {'name': name, 'email': email, 'careers': careers}
-                    extracted_data.append(student_data)
+                    extracted_data_per_page.append(student_data)
                 
-            json_data = json.dumps(extracted_data, ensure_ascii=False)
-            return json_data
         except requests.exceptions.RequestException as e:
             print("Request failed:", e)
-            return None
-
+            raise
+        finally:
+            return extracted_data_per_page
