@@ -32,7 +32,7 @@ def main():
         return
     
     if method == "find_student":
-        data = api_client.find_student()
+        data = api_client.retrieve_all_students()
         
         if data:
             # Process the retrieved data as per your requirements
