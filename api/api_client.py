@@ -97,7 +97,7 @@ class APIClient:
                         }
                         careers.append(career_data)
                     # Construct the student data and append to extracted_data
-                    student_data = {'name': name, 'email': email, 'careers': careers}
+                    student_data = {'name': name, 'email': email, 'career': careers}
                     extracted_data_per_page.append(student_data)
                 
         except requests.exceptions.RequestException as e:
