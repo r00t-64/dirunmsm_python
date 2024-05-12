@@ -73,13 +73,13 @@ class APIClient:
                     student_data = {
                         'name': group[0].text.strip(),
                         'email': group[1].text.strip().split(' ')[0],
-                        'career': {
+                        'career': [{
                             'student_id': group[2].text.strip(),
                             'program': group[3].text.strip(),
                             'department': group[4].text.strip(),
                             'type': group[5].text.strip(),
                             'status': group[6].text.strip()
-                        }
+                        }]
                     }
                     # Append the student data to the list
                     extracted_data_per_page.append(student_data)
